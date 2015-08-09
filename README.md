@@ -78,7 +78,7 @@ a parse tree or removing noise from the output to make the output easier for pro
  - `name`: *(optional)* A string representing the name of a production rule. This is included in all production rule output, but not in the intermediate parselets.
 
 ## Transforms
-The default parse tree format is designed to be generic and informative in the cmb.js internals and therefore an be a bit noisy. To make them easier to work with, each named production rule can optionally come with a helper function to keep just the bare essentials in the tree structure.
+The default parse tree format is designed to be generic and informative in the cmb.js internals and therefore it can be a bit noisy. To make them easier to work with, each named production rule can optionally come with a helper function to keep just the bare essentials in the tree structure.
 
 Each transform is a function which takes a node's old `value` as its parameter, and its output is set as the node's new `value`.  Note that only the node's `value` gets modified, resulting in a parse tree node like so:
 
