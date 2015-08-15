@@ -35,7 +35,9 @@
     return function(s){
       var match = this.evaluate(fn, s);
       match.name = name;
-      match.value = this.transforms[name](match.value);
+      if (!match.err) {
+        match.value = this.transforms[name](match.value);
+      }
       return match;
     };
   }
@@ -125,7 +127,7 @@
   };
 
   // matches whitespace
-  cmb.whitespace = cmb.term(/[ \t\n]+/);
+  cmb.whitespace = cmb.term(/\s+/);
 
   // matches any one of the provided rules.
   // usage: cmb.any(rule1, rule2[, rule3...])

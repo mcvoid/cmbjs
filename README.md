@@ -50,7 +50,7 @@ cmb.js is a set of tools which can create a function that can parse a string and
  - `cmb`: The parser generator.  config -> (string -> parseTree)
 	 - `term`:  produces a parselet that matches a string literal or a regular expression.
 	 - `empty`: a parselet that does nothing and produces an empty parse tree.
-	 - `whitespace`: a parselet that matches a string of contiguous whitespace. Shorthand for `cmb.term(/[ \t\n]+/)`.
+	 - `whitespace`: a parselet that matches a string of contiguous whitespace. Shorthand for `cmb.term(/\s+/)`.
 	 - `maybe`: a combinator that takes a parselet and returns its result on a match, or the resukt of `cmb.empty` otherwise. Analogous to the `?` operator in regular expressions.
 	 - `many`: a combinator that takes a parselet and returns 0 or more consecutive matches in an array. Analogous to the `*` operator in regular expressions.
 	 - `any`: a combinator that takes a number of parselets in order and returns the results of the first one that matches or an error if none match. Analogous to the `|` operator in regular expressions.

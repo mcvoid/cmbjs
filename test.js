@@ -168,6 +168,118 @@
           "name": "sentence"
         }, result);
       }
+    },
+    "JSON test": function(t) {
+      var parse = cmb({
+        // grammar taken from json.org
+        grammar: {
+          "null": cmb.term("null"),
+          "true": cmb.term("true"),
+          "false": cmb.term("false"),
+          "object": cmb.any(
+            cmb.all(cmb.term("{"), cmb.term("}")),
+            cmb.all(cmb.term("{"), "members", cmb.term("}"))
+          ),
+          "members": cmb.any(
+            cmb.all("pair", cmb.term(","), "members"),
+            "pair"
+          ),
+          "pair": cmb.all("string", cmb.term(":"), "value"),
+          "array": cmb.any(
+            cmb.all(cmb.term("["), cmb.term("]")),
+            cmb.all(cmb.term("["), "elements", cmb.term("]"))
+          ),
+          "elements": cmb.any(
+            cmb.all("value", cmb.term(","), "elements"),
+            "value"
+          ),
+          "value": cmb.any(
+            "string",
+            "number",
+            "object",
+            "array",
+            "true",
+            "false",
+            "null"
+          ),
+          "string": cmb.any(
+            cmb.all(cmb.term('"'), cmb.term('"')),
+            cmb.all(cmb.term('"'), "chars", cmb.term('"'))
+          ),
+          "chars": cmb.any(
+            cmb.all("char", "chars"),
+            "char"
+          ),
+          "char": cmb.any(
+            cmb.term(/[^"\\\cA-\cZ]/),
+            cmb.term('\\"'),
+            cmb.term('\\\\'),
+            cmb.term('\\/'),
+            cmb.term('\\b'),
+            cmb.term('\\f'),
+            cmb.term('\\n'),
+            cmb.term('\\r'),
+            cmb.term('\\t'),
+            cmb.term(/\\u[0-9a-fA-F]{4}/)
+          ),
+          "number": cmb.term(/-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/)
+        },
+        startRule: "value",
+        ignore: cmb.whitespace,
+        transforms: { // turns the parse tree into data
+          "true": function() { return true; },
+          "false": function() { return false; },
+          "null": function() { return null; },
+          "object": function(v) {
+            if (v.length === 2) { return {}; }
+            var val = v[1].value.reduce(function(obj, pair) {
+              obj[pair[0]] = pair[1];
+              return obj;
+            }, {});
+            return val;
+          },
+          "members": function(v) {
+            if (v.length && v.length === 3) {
+              val = [v[0].value].concat(v[2].value)
+              return val;
+            }
+            return [v];
+          },
+          "pair": function(v) { return [v[0].value, v[2].value]; },
+          "array": function(v) { return (v.length === 2) ? [] : v[1].value; },
+          "elements": function(v) {
+            if (v === null) { return [v]; }
+            if (v.length && v.length === 3) {
+              val = [v[0].value].concat(v[2].value)
+              return val;
+            }
+            return [v];
+          },
+          "string": function(v) { return (v.length === 2) ? "" : v[1].value; },
+          "chars": function(v) { return (typeof v === "string") ? v : v[0].value + v[1].value; },
+          "char": function(v) {
+            return {
+              '\\"': '"',
+              '\\\\': '\\',
+              '\\/': '\/',
+              '\\b': '\b',
+              '\\f': '\f',
+              '\\n': '\n',
+              '\\r': '\r',
+              '\\t': '\t'
+            }[v] || v;
+          },
+          "number": function(v) { return parseFloat(v); },
+        }
+      });
+      var match = parse('{"abc":[1, true, false, null, {}, "", []]}').value;
+      if (!match.abc || match.abc[0] !== 1 || match.abc[1] !== true ||
+        match.abc[2] !== false || match.abc[3] !== null ||
+        !(match.abc[4] instanceof Object) || match.abc[5] !== "" ||
+        !(match.abc[6] instanceof Array)
+      ) {
+        t.error({ "abc": [1, true, false, null, {}, "", []] }, match);
+      }
     }
   };
 
