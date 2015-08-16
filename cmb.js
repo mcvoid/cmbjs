@@ -129,6 +129,9 @@
   // matches whitespace
   cmb.whitespace = cmb.term(/\s+/);
 
+  // matches a base-10 floating point or integer
+  cmb.base10Float = cmb.term(/-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/);
+
   // matches any one of the provided rules.
   // usage: cmb.any(rule1, rule2[, rule3...])
   cmb.any = function any() {

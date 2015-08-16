@@ -202,26 +202,7 @@
             "false",
             "null"
           ),
-          "string": cmb.any(
-            cmb.all(cmb.term('"'), cmb.term('"')),
-            cmb.all(cmb.term('"'), "chars", cmb.term('"'))
-          ),
-          "chars": cmb.any(
-            cmb.all("char", "chars"),
-            "char"
-          ),
-          "char": cmb.any(
-            cmb.term(/[^"\\\cA-\cZ]/),
-            cmb.term('\\"'),
-            cmb.term('\\\\'),
-            cmb.term('\\/'),
-            cmb.term('\\b'),
-            cmb.term('\\f'),
-            cmb.term('\\n'),
-            cmb.term('\\r'),
-            cmb.term('\\t'),
-            cmb.term(/\\u[0-9a-fA-F]{4}/)
-          ),
+          "string": cmb.term(/\"([^\"\\]*|\\(["\\\/bfnrt]{1}|u[a-f0-9]{4}))*\"/),
           "number": cmb.term(/-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/)
         },
         startRule: "value",
@@ -240,7 +221,7 @@
           },
           "members": function(v) {
             if (v.length && v.length === 3) {
-              val = [v[0].value].concat(v[2].value)
+              val = [v[0].value].concat(v[2].value);
               return val;
             }
             return [v];
@@ -250,26 +231,15 @@
           "elements": function(v) {
             if (v === null) { return [v]; }
             if (v.length && v.length === 3) {
-              val = [v[0].value].concat(v[2].value)
+              val = [v[0].value].concat(v[2].value);
               return val;
             }
             return [v];
           },
-          "string": function(v) { return (v.length === 2) ? "" : v[1].value; },
-          "chars": function(v) { return (typeof v === "string") ? v : v[0].value + v[1].value; },
-          "char": function(v) {
-            return {
-              '\\"': '"',
-              '\\\\': '\\',
-              '\\/': '\/',
-              '\\b': '\b',
-              '\\f': '\f',
-              '\\n': '\n',
-              '\\r': '\r',
-              '\\t': '\t'
-            }[v] || v;
+          "string": function(v) {
+            return v.substr(1, v.length - 2);
           },
-          "number": function(v) { return parseFloat(v); },
+          "number": function(v) { return parseFloat(v); }
         }
       });
       var match = parse('{"abc":[1, true, false, null, {}, "", []]}').value;
