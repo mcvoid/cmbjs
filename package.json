@@ -1,0 +1,55 @@
+{
+  "name": "cmbjs",
+  "version": "1.0.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcvoid/cmbjs.git"
+  },
+  "author": {
+    "name": "Sean Wolcott",
+    "email": "mcvoid@mcvoid.org",
+    "url": "http://mcvoid.github.io"
+  },
+  "devDependencies": {
+    "jasmine": "^2.3.2",
+    "jshint": "*"
+  },
+  "scripts": {
+    "test": "jasmine JASMINE_CONFIG_PATH=jasmine-config.json",
+    "lint": "jshint cmb.js test/*.js"
+  },
+  "main": "cmb.js",
+  "bugs": "https://github.com/mcvoid/cmbjs/issues",
+  "jshintConfig": {
+    "bitwise": true,
+    "camelcase": true,
+    "curly": true,
+    "eqeqeq": true,
+    "forin": true,
+    "freeze": true,
+    "immed": true,
+    "indent": 2,
+    "latedef": true,
+    "newcap": true,
+    "noarg": true,
+    "noempty": true,
+    "nonbsp": true,
+    "nonew": true,
+    "plusplus": false,
+    "quotmark": true,
+    "undef": true,
+    "unused": true,
+    "maxparams": false,
+    "maxdepth": false,
+    "maxstatements": false,
+    "maxcomplexity": false,
+    "maxlen": false,
+    "varstmt": false,
+    "esnext": true,
+    "sub": true,
+    "validthis": true,
+    "jasmine": true,
+    "node": true
+  }
+}
