@@ -222,15 +222,15 @@ cmb.many = function many(fn) {
       currentState = result.state;
       result = this.evaluate(fn, s, currentState);
     }
-    if (results.length === 0) {
-      return {
-        value: [],
-        state: newState(s, state.start, 0)
-      };
-    }
     var start = state.start + state.len;
     var end = currentState.start + currentState.len;
     var len = end - start;
+    if (results.length === 0) {
+      return {
+        value: [],
+        state: newState(s, start, 0)
+      };
+    }
     return {
       value: results,
       state: newState(s, start, len)
