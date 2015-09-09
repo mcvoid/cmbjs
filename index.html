@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Cmbjs by mcvoid</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>Cmbjs</h1>
+          <h2>A parsing library for JavaScript using parser combinators</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/mcvoid/cmbjs/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/mcvoid/cmbjs/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/mcvoid/cmbjs" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h1>
+<a id="cmbjs" class="anchor" href="#cmbjs" aria-hidden="true"><span class="octicon octicon-link"></span></a>cmb.js</h1>
+
+<p><strong>A parsing library for JavaScript using parser combinators</strong></p>
+
+<p>cmb.js is a set of tools which can create a function that can parse a string and
+output a parse tree. It basically generates a recursive descent parser by
+encapsulating the boilerplate code in a way that you can combine the parts
+directly into the parsing function merely by specifying the grammar.</p>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<pre><code>var parse = cmb(config);
+var parseTree = parse("abcdefg");
+</code></pre>
+
+<h2>
+<a id="example" class="anchor" href="#example" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example</h2>
+
+<pre><code>// Produces a parser that recognizes 0 or more a's
+// followed by 1 or more b's
+var parse = cmb({
+  grammar: {
+    "sentence": cmb.all("a's", "b's"),
+    "a's": cmb.many(cmb.term("a")),
+    "b's": cmb.all(cmb.term("b"), cmb.many(cmb.term("b")))
+  },
+  startRule: "sentence",
+  ignore: cmb.empty,
+  transforms: {
+    "sentence": function(value) {
+      return value.map(function(node) {
+          return node.value;
+      });
+    },
+    "a's": function(value) {
+      return value.map(function(node) {
+          return node.value;
+      });
+    },
+    "b's": function(value) {
+      var b = value[1].value.slice();
+      b.unshift(value[0]);
+      return b.map(function(node) { return node.value; });
+    }
+  }
+});
+var result = parse("aaabbbbb");
+// output:
+// {
+//   value: [["a", "a", "a"], ["b", "b", "b", "b", "b"]],
+//   state: ...,
+//   name: "sentence"
+// }
+</code></pre>
+
+<h2>
+<a id="api" class="anchor" href="#api" aria-hidden="true"><span class="octicon octicon-link"></span></a>API</h2>
+
+<ul>
+<li>
+<code>cmb</code>: The parser generator. 
+
+<ul>
+<li>
+<code>term</code>:  produces a parselet that matches a string literal or a regular
+expression.</li>
+<li>
+<code>empty</code>: a parselet that does nothing and produces an empty parse tree.</li>
+<li>
+<code>whitespace</code>: a parselet that matches a string of contiguous whitespace.
+Shorthand for <code>cmb.term(/\s+/)</code>.</li>
+<li>
+<code>maybe</code>: a combinator that takes a parselet and returns its result on a
+match, or the resukt of <code>cmb.empty</code> otherwise. Analogous to the <code>?</code> operator
+in regular expressions.</li>
+<li>
+<code>many</code>: a combinator that takes a parselet and returns 0 or more
+consecutive matches in an array. Analogous to the <code>*</code> operator in regular
+expressions.</li>
+<li>
+<code>any</code>: a combinator that takes a number of parselets in order and returns
+the results of the first one that matches or an error if none match.
+Analogous to the <code>|</code> operator in regular expressions.</li>
+<li>
+<code>all</code>: a combinator that takes a number of parselets and matches them in
+sequence, returning an array of results on success and the first error it
+encounters otherwise. Analogous to adjacent rules in regular expressions.</li>
+</ul>
+</li>
+<li>
+<code>config</code>: The language grammar specification fed to <code>cmb()</code> to produce a
+parsing function. <code>config</code> is an object which can have several optional fields:
+
+<ul>
+<li>
+<code>grammar</code>: <em>(optional)</em> an object representing name-value pairs of
+production rules. Specifying names are useful for defining a recursive rule,
+naming a parse tree node, or applying a transform to the parse tree's output at
+that level.</li>
+<li>
+<code>startRule</code>: <em>(optional)</em> a name or parselet which will act as the starting
+point of the top-down parsing (the "top" of the grammar). If no rule is
+specified, it assumes that it will start at a node named "root".</li>
+<li>
+<code>ignore</code>: <em>(optional)</em> a name or parselet that the parser will discard
+before trying to find a production rule. Useful for discarding whitespace,
+for example. It will not ignored the pattern in unnamed rules or subrules, so
+if it is required to ignore space between subrules, it's best to name the
+rules in the grammar. It defaults it cmb.empty, which matches nothing.</li>
+<li>
+<code>transforms</code>: <em>(optional)</em> an object of name-value pairs of transforms to
+perform on a generated parse tree of a given production rule. Useful for
+flattening a parse tree or removing noise from the output to make the output
+easier for processing.</li>
+</ul>
+</li>
+</ul>
+
+<h2>
+<a id="parse-tree-format" class="anchor" href="#parse-tree-format" aria-hidden="true"><span class="octicon octicon-link"></span></a>Parse Tree Format</h2>
+
+<pre><code>{
+    value: &lt;any value&gt;,
+    state: &lt;obj&gt;,
+    err: &lt;string or array&gt;,
+    name: &lt;string&gt;
+}
+</code></pre>
+
+<ul>
+<li>
+<code>value</code>: <em>(optional)</em> The value found parsing the text. Can contain text,
+other parse tree nodes, an array of results, or anything a transform function
+puts in the node.</li>
+<li>
+<code>state</code>: The state of the parser as of the last thing parsed. Useful for
+debugging as it shows you text representation of a parse subtree.</li>
+<li>
+<code>err</code>: <em>(optional)</em> An error or array of errors produced when a parselet
+cannot parse the given string.</li>
+<li>
+<code>name</code>: <em>(optional)</em> A string representing the name of a production rule.
+This is included in all production rule output, but not in the intermediate
+parselets.</li>
+</ul>
+
+<h2>
+<a id="transforms" class="anchor" href="#transforms" aria-hidden="true"><span class="octicon octicon-link"></span></a>Transforms</h2>
+
+<p>The default parse tree format is designed to be generic and informative in the
+cmb.js internals and therefore it can be a bit noisy. To make them easier to
+work with, each named production rule can optionally come with a helper function
+to keep just the bare essentials in the tree structure.</p>
+
+<p>Each transform is a function which takes a node's old <code>value</code> as its parameter,
+and its output is set as the node's new <code>value</code>.  Note that only the node's
+<code>value</code> gets modified, resulting in a parse tree node like so:</p>
+
+<pre><code>{
+    value: transforms[originalName](originalValue),
+    state: originalState,
+    err: originalErr,
+    name: originalName
+}
+</code></pre>
+
+<p>One last thing to note is that while parsing is done top-down, transforms are
+done bottom-up, meaning that any child nodes (contained in the <code>value</code> field)
+have already been subjected to transforms. This also makes possible any
+bottom-up syntax analysis before the value is returned.</p>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>The MIT License (MIT)</p>
+
+<p>Copyright (c) 2015 Sean Wolcott</p>
+
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:</p>
+
+<p>The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+        </section>
+
+        <footer>
+          Cmbjs is maintained by <a href="https://github.com/mcvoid">mcvoid</a><br>
+          This page was generated by <a href="https://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
+    </div>
+  </body>
+</html>
