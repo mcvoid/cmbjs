@@ -2,9 +2,10 @@
 **A parsing library for JavaScript using parser combinators**
 
 cmb.js is a set of tools which can create a function that can parse a string and
-output a parse tree. It basically generates a recursive descent parser by
-encapsulating the boilerplate code in a way that you can combine the parts
-directly into the parsing function merely by specifying the grammar.
+output a parse tree. It basically generates a scannerless recursive descent
+parser by encapsulating the boilerplate code in a way that you can combine the
+parts directly into the parsing function merely by specifying the grammar.
+Memoization ensures that the parsing happens in roughly O(n) time and space.
 
 ## Usage
 
@@ -19,7 +20,7 @@ directly into the parsing function merely by specifying the grammar.
       grammar: {
         "sentence": cmb.all("a's", "b's"),
         "a's": cmb.many(cmb.term("a")),
-        "b's": cmb.all(cmb.term("b"), cmb.many(cmb.term("b")))
+        "b's": cmb.several(cmb.term("b"))
       },
       startRule: "sentence",
       ignore: cmb.empty,
@@ -35,9 +36,9 @@ directly into the parsing function merely by specifying the grammar.
           });
         },
         "b's": function(value) {
-          var b = value[1].value.slice();
-          b.unshift(value[0]);
-          return b.map(function(node) { return node.value; });
+          return value.map(function(node) {
+	          return node.value;
+          });
         }
       }
     });
@@ -52,7 +53,7 @@ directly into the parsing function merely by specifying the grammar.
 
 ## API
 
-- `cmb`: The parser generator.  config -> (string -> parseTree)
+- `cmb`: The parser generator.
   - `term`:  produces a parselet that matches a string literal or a regular
   expression.
   - `empty`: a parselet that does nothing and produces an empty parse tree.
@@ -70,6 +71,9 @@ directly into the parsing function merely by specifying the grammar.
   - `all`: a combinator that takes a number of parselets and matches them in
   sequence, returning an array of results on success and the first error it
   encounters otherwise. Analogous to adjacent rules in regular expressions.
+  - `several`: a combinator that takes a parselet and returns 1 or more matches
+  in an array or an error on no matches. Analogous to the `+` operator in regular
+  expressions.
 - `config`: The language grammar specification fed to `cmb()` to produce a
 parsing function. `config` is an object which can have several optional fields:
   - `grammar`: *(optional)* an object representing name-value pairs of
@@ -129,6 +133,9 @@ One last thing to note is that while parsing is done top-down, transforms are
 done bottom-up, meaning that any child nodes (contained in the `value` field)
 have already been subjected to transforms. This also makes possible any
 bottom-up syntax analysis before the value is returned.
+
+## Changes
+- `1.1.0`: added the `several` combinator.
 
 ## License
 The MIT License (MIT)

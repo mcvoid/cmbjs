@@ -250,4 +250,29 @@ cmb.maybe = function maybe(fn) {
   };
 };
 
+// matches a rule 1 or more times
+// usage: cmb.several(rule1)
+cmb.several = function several(fn) {
+  return function parseSeveral(s, state) {
+    var results = [];
+    var currentState = state;
+    var result = this.evaluate(fn, s, currentState);
+    if (result.err) {
+      return result;
+    }
+    while (!result.err) {
+      results.push(result);
+      currentState = result.state;
+      result = this.evaluate(fn, s, currentState);
+    }
+    var start = state.start + state.len;
+    var end = currentState.start + currentState.len;
+    var len = end - start;
+    return {
+      value: results,
+      state: newState(s, start, len)
+    };
+  };
+};
+
 module.exports = cmb;

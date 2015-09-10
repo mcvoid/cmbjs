@@ -198,6 +198,22 @@ describe("combinators", function() {
     result = parse("c");
     expect(result.err).toBeDefined();
   });
+
+  it("Check several combinator", function() {
+    var parse = cmb({ startRule: cmb.several(cmb.term("a")) });
+    var result = parse("b");
+    expect(result.err).toBeDefined();
+
+    result = parse("aaaaab");
+    var val = result.value.map(function(v) { return v.value; });
+    expect(val).toEqual(["a", "a", "a", "a", "a"]);
+    expect(result.state).toEqual({
+      start: 0,
+      len: 5,
+      string: "aaaaa"
+    });
+  });
+
 });
 
 describe("transforms", function() {
